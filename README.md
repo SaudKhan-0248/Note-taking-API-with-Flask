@@ -48,7 +48,7 @@ To get started with this project:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/note-taking-api.git
+git clone https://github.com/SaudKhan-0248/Note-taking-API-with-Flask.git
 cd note-taking-api
 ```
 2. Create a .env file in `src` directory and configure the necessary environment variables including `SECRET KEY, SQLALCHEMY_DATABASE_URL, JWT_SECRET_KEY` and `REDIS_HOST`
