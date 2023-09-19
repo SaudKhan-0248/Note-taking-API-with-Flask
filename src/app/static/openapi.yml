@@ -1,0 +1,384 @@
+openapi: 3.0.3
+info:
+  title: Notes-API
+  description: The Simple Notes-API is a straightforward Flask-powered tool that empowers you to create, manage, and organize your notes effortlessly.
+  version: "1.0"
+
+servers:
+  - url: http://localhost:5000
+
+tags:
+  - name: Auth
+    description: Endpoints related to user authentication
+  - name: Notes
+    description: Endpoints for managing user notes
+  - name: User
+    description: Endpoints for managing user profiles and account settings
+
+paths:
+  /auth/signup:
+    post:
+      tags:
+        - Auth
+      description: create a new account
+      requestBody:
+        required: True
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 25
+                  example: Joe Goldberg
+                email:
+                  type: string
+                  example: joegoldberg@gmail.com
+                password:
+                  type: string
+                  minLength: 8
+                  maxLength: 25
+                  example: test_123
+                confirm_password:
+                  type: string
+                  example: test_123
+              required:
+                - username
+                - email
+                - password
+                - confirm_password
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User created Successfully
+                  info:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                        example: Joe Goldberg
+                      email:
+                        type: string
+                        example: joegoldberg@gmail.com
+        400:
+          description: The credentials provided are invalid
+        409:
+          description: The email provided is already in use
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      description: Login to your account
+      requestBody:
+        required: True
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: joegoldberg@gmail.com
+                password:
+                  type: string
+                  example: test_123
+              required:
+                - email
+                - password
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: <your access token here>
+        401:
+          description: Wrong Credentials provided
+
+  /auth/logout:
+    get:
+      tags:
+        - Auth
+      security:
+        - jwt: []
+      description: Logout of your account
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              example:
+                message: Logged out Successfully
+        401:
+          description: Unauthorized to perform action
+
+  /notes:
+    get:
+      tags:
+        - Notes
+      security:
+        - jwt: []
+      description: Get all of your notes
+      responses:
+        200:
+          description: Successfully fetched the notes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    example: Joe Goldberg
+                  notes:
+                    type: array
+                    items:
+                      type: object
+                    example:
+                      [
+                        { title: Example Title 1, content: Example content 1 },
+                        { title: Example Title 2, content: Example content 2 },
+                      ]
+
+        401:
+          $ref: "#/components/responses/401"
+
+  /notes/{title}:
+    get:
+      tags:
+        - Notes
+      description: Get a specific Note
+      security:
+        - jwt: []
+      parameters:
+        - name: title
+          in: path
+          required: True
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 17
+                  title:
+                    type: string
+                    example: Example Note Title
+                  content:
+                    type: string
+                    example: This is the content of example note
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+
+  /notes/create:
+    post:
+      tags:
+        - Notes
+      description: Create a new Note
+      security:
+        - jwt: []
+      requestBody:
+        required: True
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: <your note's title here>
+                content:
+                  type: string
+                  example: <your note's content here>
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Note created Successfully
+                  note:
+                    $ref: "#/components/schemas/note"
+        401:
+          $ref: "#/components/responses/401"
+
+  /notes/update/{title}:
+    put:
+      tags:
+        - Notes
+      description: Update a specific Note
+      security:
+        - jwt: []
+      parameters:
+        - name: title
+          in: path
+          required: True
+          schema:
+            type: string
+      requestBody:
+        required: True
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_title:
+                  type: string
+                  example: <new title here>
+                new_content:
+                  type: string
+                  example: <new content here>
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Record updated Successfully
+                  new_note:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                        example: Example Updated Title
+                      content:
+                        type: string
+                        example: Example Updated content
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+
+  /notes/delete/{title}:
+    delete:
+      tags:
+        - Notes
+      description: Delete a specific Note
+      security:
+        - jwt: []
+      parameters:
+        - name: title
+          in: path
+          required: True
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              example:
+                message: Note deleted Successfully
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+
+  /user/profile:
+    get:
+      tags:
+        - User
+      description: Get the user's profile info
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  personal info:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                        example: Joe Goldberg
+                      email:
+                        type: string
+                        example: joegoldberg@gmail.com
+                  notes:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      [
+                        Example Note Title 1,
+                        Example Note Title 2,
+                        Example Note Title 3,
+                      ]
+        401:
+          $ref: "#/components/responses/401"
+
+  /user/delete:
+    delete:
+      tags:
+        - User
+      description: Delete the user account
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              example:
+                message: User deleted Successfully
+        401:
+          $ref: "#/components/responses/401"
+
+components:
+  responses:
+    401:
+      description: Unauthorized to perform action
+    404:
+      description: Record Not Found
+
+  schemas:
+    note:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Example Note Title
+        content:
+          type: string
+          example: This is the content of example note
+
+  securitySchemes:
+    jwt:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Bearer token

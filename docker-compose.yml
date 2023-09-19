@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  api:
+    build: ./src/
+    ports:
+      - 5000:5000
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:15.4-alpine3.18
+    environment:
+      - POSTGRES_PASSWORD=admin
+
+  redis:
+    image: redis:7.2.1-alpine
